@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Room extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -24,6 +25,10 @@ class Room extends Model
         'height'    => 'float',
         'project_id'=> 'integer',
         'deleted_at'=> 'timestamp',
+    ];
+
+    protected $dates = [
+        'deleted_at',
     ];
 
     public function project(): BelongsTo

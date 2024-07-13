@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
@@ -12,16 +13,8 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        return Project::all();
+        return Auth::user()->projects()->with(['rooms'])->get();
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    // public function create()
-    // {
-    //     //
-    // }
 
     /**
      * Store a newly created resource in storage.
@@ -44,16 +37,10 @@ class ProjectController extends Controller
      */
     public function show(string $id)
     {
-        return Project::find($id);
+        $user = Auth::user();
+        $test = Project::where('id', $id)->with(['rooms'])->get();
+        return $test;
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    // public function edit(string $id)
-    // {
-    //     //
-    // }
 
     /**
      * Update the specified resource in storage.
@@ -61,15 +48,10 @@ class ProjectController extends Controller
     public function update(Request $request, string $id)
     {
         $project = Project::find($id);
-        if ($request->has('name')) {
-            $project->name = $request->name;
-        }
-        if ($request->has('address')) {
-            $project->address = $request->address;
-        }
-        if ($request->has('state')) {
-            $project->state = $request->state;
-        }
+        
+        $project->name = $request->name ?? $project->name; 
+        $project->address = $request->address ?? $project->address;
+        $project->state = $request->state ?? $project->state;
         $project->save();
         return $project;
     }

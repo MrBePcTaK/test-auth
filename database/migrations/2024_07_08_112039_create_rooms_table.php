@@ -18,7 +18,6 @@ return new class extends Migration
             $table->float('height');
             $table->foreignId('project_id')->constrained();
             $table->timestamps();
-            $table->timestamp('deleted_at')->nullable();
             $table->softDeletes();
         });
     }

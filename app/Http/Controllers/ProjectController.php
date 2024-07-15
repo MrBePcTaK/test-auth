@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class ProjectController extends Controller
 {
@@ -21,15 +22,28 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        $project = new Project;
+        $data = $request->all();
+        $validator = Validator::make($data, [
+            'name' => 'required|max:255',
+            'address' => 'required|max:255',
+            'state' => 'integer|min:1|max:5',
+        ]);
 
-        $project->name = $request->name;
-        $project->address = $request->address;
-        $project->creator = $request->creator;
-        $project->state = 1;
-
-        $project->save();
-        return $project;
+        if($validator->fails()){
+            return response(['message' => 'Validation Error',
+            'error' => $validator->errors()]);
+        } else {
+            $user = Auth::user();
+            $project = new Project;
+    
+            $project->name = $data['name'];
+            $project->address = $data['address'];
+            $project->creator = $user->id;
+            $project->state = $data['state'] ?? 1;
+    
+            $project->save();
+            return $project;
+        }
     }
 
     /**
@@ -37,9 +51,7 @@ class ProjectController extends Controller
      */
     public function show(string $id)
     {
-        $user = Auth::user();
-        $test = Project::where('id', $id)->with(['rooms'])->get();
-        return $test;
+        return Project::where('id', $id)->with(['rooms'])->get();;
     }
 
     /**
@@ -47,13 +59,25 @@ class ProjectController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $project = Project::find($id);
-        
-        $project->name = $request->name ?? $project->name; 
-        $project->address = $request->address ?? $project->address;
-        $project->state = $request->state ?? $project->state;
-        $project->save();
-        return $project;
+        $data = $request->all();
+        $validator = Validator::make($data, [
+            'name' => 'max:255',
+            'address' => 'max:255',
+            'state' => 'integer|min:1|max:5',
+        ]);
+
+        if($validator->fails()){
+            return response(['message' => 'Validation Error',
+            'error' => $validator->errors()]);
+        } else {
+            $project = Project::find($id);
+            
+            $project->name = $data['name'] ?? $project->name;
+            $project->address = $data['address'] ?? $project->address;
+            $project->state = $data['state'] ?? $project->state;
+            $project->save();
+            return $project;
+        }
     }
 
     /**
@@ -61,9 +85,12 @@ class ProjectController extends Controller
      */
     public function destroy(string $id)
     {
+        // Мягкое удаление проекта и связанных с ним комнат
         $project = Project::find($id);
-        $project->deleted_at = now();
-        $project->save();
+        foreach ($project->rooms()->get() as $room) {
+            $room->delete();
+        }
+        $project->delete();
         return $project;
     }
 }

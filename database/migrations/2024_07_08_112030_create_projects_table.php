@@ -18,7 +18,7 @@ return new class extends Migration
             $table->tinyInteger('state');
             $table->foreignId('creator')->references('id')->on('users');
             $table->timestamps();
-            $table->timestamp('deleted_at')->nullable();
+            $table->softDeletes();
         });
     }
 

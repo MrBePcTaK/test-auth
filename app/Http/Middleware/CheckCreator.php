@@ -34,7 +34,7 @@ class CheckCreator
         }
 
         if ($object->creator !== $user->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json(['error' => 'Access is denied'], 403);
         }
 
         return $next($request);

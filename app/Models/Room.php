@@ -24,7 +24,7 @@ class Room extends Model
         'area'      => 'float',
         'height'    => 'float',
         'project_id'=> 'integer',
-        'deleted_at'=> 'timestamp',
+        'deleted_at'=> 'datetime',
     ];
 
     protected $dates = [

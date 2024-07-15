@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('deleted_at')->nullable();
+            $table->softDeletes();
         });
     }
 
@@ -22,9 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            if (Schema::hasColumn('users', 'deleted_at')) {
-                $table->dropColumn('deleted_at');
-            }
+            $table->dropSoftDeletes();        
         });
     }
 };

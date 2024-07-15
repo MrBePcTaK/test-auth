@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Room;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RoomController extends Controller
 {
@@ -12,7 +13,7 @@ class RoomController extends Controller
      */
     public function index()
     {
-        return Room::all();
+        return Auth::user()->projects()->with(['rooms'])->get();
     }
 
     /**
@@ -20,12 +21,19 @@ class RoomController extends Controller
      */
     public function store(Request $request)
     {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'area' => 'required|numeric',
+            'height' => 'required|numeric',
+            'project_id' => 'required|integer|exists:projects,id'
+        ]);
+
         $room = new Room;
 
-        $room->name = $request->name;
-        $room->area = $request->area;
-        $room->height = $request->height;
-        $room->project_id = $request->project_id;
+        $room->name = $data['name'];
+        $room->area = $data['area'];
+        $room->height = $data['height'];
+        $room->project_id = $data['project_id'];
 
         $room->save();
         return $room;
@@ -44,18 +52,25 @@ class RoomController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $room = Room::find($id);
-        if ($request->has('name')) {
-            $room->name = $request->name;
+        $data = $request->validate([
+            'name' => 'string|max:255',
+            'area' => 'numeric',
+            'height' => 'numeric',
+            'project_id' => 'integer|exists:projects,id'
+        ]);
+
+        if ($data) {
+            $room = Room::find($id);
+
+            $room->name = $data['name'] ?? $room->name;
+            $room->area = $data['area'] ?? $room->area;
+            $room->height = $data['height'] ?? $room->height;
+            $room->project_id = $data['project_id'] ?? $room->project_id;
+            $room->save();
+            return $room;
         }
-        if ($request->has('area')) {
-            $room->area = $request->area;
-        }
-        if ($request->has('height')) {
-            $room->height = $request->height;
-        }
-        $room->save();
-        return $room;
+        
+        return response(['error_message' => 'Invalid data']);
     }
 
     /**
@@ -63,9 +78,6 @@ class RoomController extends Controller
      */
     public function destroy(string $id)
     {
-        $room = Room::find($id);
-        $room->deleted_at = now();
-        $room->save();
-        return $room;
+        return Room::find($id)->delete();
     }
 }
